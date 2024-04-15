@@ -1,11 +1,17 @@
+mod apis;
+mod db;
+
 use axum::{routing::get, serve, Router};
 use tokio::net::TcpListener;
-
-mod routes;
-use routes::healthcheck;
+use futures::executor::block_on;
+use apis::*;
+use db::create_dbconnection;
 
 #[tokio::main]
 async fn main() {
+    if let Err(err) = block_on(create_dbconnection()) {
+        panic!("{}", err);
+    }
     
     let app = Router::new()
         .route("/healthcheck", get(healthcheck::healthcheck));
