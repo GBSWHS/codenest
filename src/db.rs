@@ -1,27 +1,12 @@
-use sea_orm::{ConnectionTrait, Database, DbBackend, DbErr, Statement};
+use std::env;
 
-const DATABASE_URL: &str = "mysql://root:password@localhost:3306";
-const DB_NAME: &str = "codenest";
+use diesel::{Connection, MysqlConnection};
+use dotenvy::dotenv;
 
-pub async fn create_dbconnection() -> Result<(), DbErr> {
-    let db = Database::connect(DATABASE_URL).await?;
+pub fn establish_connection() -> MysqlConnection {
+    dotenv().ok();
 
-    match db.get_database_backend() {
-        DbBackend::MySql => {
-            db.execute(Statement::from_string(
-                db.get_database_backend(),
-                format!("CREATE DATABASE IF NOT EXISTS {}", DB_NAME),
-            ))
-            .await?;
-
-            println!("Database {} created", DB_NAME);
-
-            let url = format!("{}/{}", DATABASE_URL, DB_NAME);
-            Database::connect(&url).await?
-        }
-        sea_orm::DatabaseBackend::Postgres => todo!(),
-        sea_orm::DatabaseBackend::Sqlite => todo!(),
-    };
-
-    Ok(())
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    MysqlConnection::establish(&database_url)
+        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }

@@ -3,15 +3,13 @@ mod db;
 
 use axum::{routing::get, serve, Router};
 use tokio::net::TcpListener;
-use futures::executor::block_on;
 use apis::*;
-use db::create_dbconnection;
+use db::establish_connection;
 
 #[tokio::main]
 async fn main() {
-    if let Err(err) = block_on(create_dbconnection()) {
-        panic!("{}", err);
-    }
+    let conn = establish_connection();
+    //TODO: DB Code & Model & Schema
     
     let app = Router::new()
         .route("/healthcheck", get(healthcheck::healthcheck));
